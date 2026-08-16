@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Matching Game 💖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Itim&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FFA6C9; 
+            --bg-color: #ffebee; 
+            --text-color: #ffffff; 
+        }
+
+        * { box-sizing: border-box; font-family: 'Itim', cursive; user-select: none; margin: 0; padding: 0; }
+        
+        body { color: var(--text-color); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; background-color: var(--bg-color); position: relative; }
+
+        /* =========================================
+           🚪 CSS สำหรับหน้าด่านคำถาม (Gate Screen) 
+           ========================================= */
+        #gate-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            /* 💡 เปลี่ยนจาก 0.95 (ทึบ) เป็น 0.6 (โปร่งแสง) เพื่อให้เห็นภาพเลื่อนข้างหลัง */
+            background: rgba(20, 15, 20, 0.6); 
+            backdrop-filter: blur(12px); /* 💡 ลดความเบลอลงนิดนึงให้พอเห็นรูป */
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 9999; 
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .gate-box {
+            /* 💡 เพิ่มสีกระจกฝ้าให้กล่องคำถามอ่านง่ายขึ้น เพราะฉากหลังสว่าง */
+            background: rgba(30, 20, 25, 0.85);
+            padding: 40px 20px;
+            border-radius: 40px;
+            border: 4px dashed var(--primary);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(255, 166, 201, 0.3); 
+        }
+        .gate-btn-group {
+            display: flex; flex-direction: column; gap: 15px; margin-top: 30px; align-items: center;
+        }
+        .gate-btn {
+            background: linear-gradient(135deg, #FFD1DF, #FFA6C9); 
+            color: #d81b60; border: none; padding: 15px 20px; 
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer;
+            transition: all 0.2s ease; 
+            width: 100%; max-width: 260px;
+            box-shadow: 0 6px 0 #e07a9e, 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .gate-btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #e07a9e; }
+        
+        #p-tee-wrapper {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%; display: flex; justify-content: center;
+        }
+
+        /* =========================================
+           ส่วนของเกมหลัก
+           ========================================= */
+        #bg-wrapper { position: fixed; top: -25%; left: -25%; width: 150vw; height: 150vh; z-index: 1; pointer-events: none; transform: rotate(-3deg); overflow: hidden; }
+        #bg-collage { width: 150%; height: 150%; display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; opacity: 1; animation: scrollBg 60s linear infinite alternate; }
+        .bg-tile { width: 100%; aspect-ratio: 1 / 1; background-size: cover; background-position: center; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        @keyframes scrollBg { 0% { transform: translate(0, 0); } 100% { transform: translate(-20%, -20%); } }
+
+        .container { width: 92vw; max-width: 420px; height: 88vh; max-height: 720px; background: rgba(30, 20, 25, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 4px dashed var(--primary); border-radius: 40px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 166, 201, 0.4); overflow: hidden; padding: 20px; }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; z-index: 10; transition: opacity 0.3s ease-in-out; padding: 20px; text-align: center; }
+        .hidden { opacity: 0; pointer-events: none; z-index: -1; }
+
+        h1 { color: var(--primary); margin-bottom: 15px; font-size: clamp(1.8rem, 6vw, 2.2rem); text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        p.subtitle { font-size: clamp(0.95rem, 3.8vw, 1.1rem); line-height: 1.5; margin-bottom: 40px; color: #fce4ec; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); }
+
+        .btn { background: linear-gradient(135deg, #FFD1DF, #FFA6C9); color: #d81b60; border: none; padding: 12px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 6px 0 #e07a9e, 0 10px 20px rgba(0,0,0,0.3); margin: 5px; width: 80%; max-width: 250px; }
+        .btn:hover { transform: translateY(2px); box-shadow: 0 4px 0 #e07a9e, 0 6px 15px rgba(0,0,0,0.3); }
+        .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #e07a9e, 0 2px 5px rgba(0,0,0,0.3); }
+
+        .game-header { width: 100%; max-width: 340px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 0.95rem; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); }
+        .progress-container { width: 130px; height: 26px; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--primary); border-radius: 20px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); z-index: 20; }
+        .progress-bar { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: linear-gradient(90deg, #ff6b81, #ffa6c9); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+        .progress-text { position: relative; z-index: 2; font-size: 0.85rem; font-weight: bold; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .capsule-bump { animation: bump 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bump { 0% { transform: scale(1); } 50% { transform: scale(1.15); border-color: #fff; } 100% { transform: scale(1); } }
+        .time-alert { color: #ff6b81; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        #matching-board { width: 100%; max-width: 320px; aspect-ratio: 3 / 4; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; }
+        .card { background-color: #ffb7c5; border-radius: 10px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: transform 0.3s ease; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .card-back { 
+            /* 💡 ใส่ชื่อไฟล์รูปโลโก้ที่มีพื้นหลังของคุณ (สมมติชื่อ logo.jpg) */
+            background-image: url('logo.jpg'); 
+            
+            /* 💡 ขยายรูปให้คลุมเต็มการ์ดพอดีเป๊ะ */
+            background-size: cover; 
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            /* ลบเส้นขอบและสีเดิมออก เพราะในรูปคุณมีมาให้แล้ว */
+            border: none; 
+            border-radius: 10px;
+        }
+        .card-front { background-size: cover; background-position: center; transform: rotateY(180deg); border: 2px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+    <!-- 🚪 หน้าด่านคำถาม (Gate Screen) -->
+    <div id="gate-screen">
+        <div class="gate-box">
+            <h1>ตอบคำถามก่อน!</h1>
+            <p class="subtitle" style="margin-bottom: 15px;">สารภาพมาซะดีๆ ว่าความจริงแล้ว...<br>ใครชอบก่อนกันแน่? 🤔</p>
+            <div class="gate-btn-group">
+                <button id="btn-nong-so" class="gate-btn">น้องโซ่ชอบก่อน</button>
+                <div id="p-tee-wrapper">
+                    <button id="btn-p-tee" class="gate-btn">พี่ธีร์ชอบก่อน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🖼️ พื้นหลังแบบเลื่อนได้ -->
+    <div id="bg-wrapper"><div id="bg-collage"></div></div>
+    
+    <!-- 🎮 กรอบของเกม -->
+    <div class="container">
+        <div id="start-screen" class="screen">
+            <h1>🃏 Matching Game <br> with My player two 💖</h1>
+            <p class="subtitle">ตะลุยด่านจับคู่ภาพให้ทันเวลา!<br>ยิ่งด่านสูง เวลายิ่งน้อยลงนะ ✨</p>
+            <button class="btn" id="start-btn">เริ่มเกมเลย! 🎮</button>
+        </div>
+
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <span id="level-display">ด่านที่: 1 🌟</span>
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                    <span class="progress-text" id="progress-text">0%</span>
+                </div>
+                <span id="time-display">⏱ 60s</span>
+            </div>
+            <div id="matching-board"></div>
+        </div>
+
+        <div id="game-over-screen" class="screen hidden">
+            <h1 id="result-title" style="color: #ff6b81; font-size: 1.8rem; margin-bottom: 5px;">หมดเวลา! ⏰</h1>
+            <p id="result-desc" style="font-size: 1.1rem; color: #fce4ec; margin-bottom: 25px;">พยายามได้ดีมาก! ✌️</p>
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px;">
+                <button class="btn" id="next-level-btn" style="display: none;">ด่านต่อไป ➡️</button>
+                <button class="btn" id="retry-btn">เล่นใหม่ 🔁</button>
+            </div>
+        </div>
+    </div>
+
+<script src="script.js"></script>
+</body>
+</html>
