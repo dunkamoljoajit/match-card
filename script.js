@@ -186,7 +186,7 @@ function startRound() {
     loadCards(); // โหลดและหงายไพ่โชว์ทันที
 
     // 💡 ระบบ Peek 3 วินาที
-    let peekTime = 3;
+    let peekTime = 1;
     timeDisplay.classList.remove('time-alert');
     timeDisplay.innerText = `👀 จำภาพ! ${peekTime}s`;
     
