@@ -146,19 +146,44 @@ nextLevelBtn.addEventListener('click', () => {
 shareXBtn.addEventListener('click', () => {
     playSound(clickSound);
     let shareText = "";
-    
-    // ใช้ URL ปัจจุบันของเว็บเรา (ถ้าเอาขึ้น GitHub มันจะใช้ลิงก์นั้นอัตโนมัติเลยครับ)
     let gameUrl = window.location.href; 
 
     if (isGameCleared) {
         shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่เคลียร์ครบ ${finalLevel} ด่านรวด! ตาแตกมาก ใครแน่จริงมาลองแข่งกัน 💖✨`;
+    } else if (nextLevelBtn.style.display !== "none") {
+        // กรณีเพิ่งผ่านด่านย่อย
+        shareText = `เย้! เพิ่งผ่านด่านที่ ${currentLevel} ของเกมจับคู่พี่ธีร์น้องโซ่มาแล้ว เก่งป่ะล่ะ 💅✨ มาลองเล่นกัน:`;
     } else {
-        shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่ไปถึงด่าน ${currentLevel} แล้วเวลาหมดก่อน! มาช่วยกันเล่นหน่อยยย 😭💖`;
+        // กรณีเวลาหมดแพ้กลางทาง
+        shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่มาถึงด่าน ${currentLevel} แล้วเวลาหมดก่อน! 😭 มาช่วยกันเล่นแก้แค้นหน่อยยย`;
     }
 
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
     window.open(twitterUrl, '_blank');
 });
+// ==========================================
+// 📸 ฟังก์ชันแปลงการ์ดผลลัพธ์ให้เด้งมาเป็นภาพ (Image Card)
+// ==========================================
+function generateResultImage() {
+    const cardElement = document.getElementById('share-card-container');
+    const outputArea = document.getElementById('image-output-area');
+    
+    // เคลียร์รูปเก่าทิ้งก่อน
+    outputArea.innerHTML = '<p style="font-size:0.85rem; color:#ffa6c9;">📸 กำลังสร้างการ์ดรูปภาพ...</p>';
+
+    // ใช้ html2canvas แปลงกล่องการ์ดให้เป็นรูปภาพ Canvas
+    html2canvas(cardElement, {
+        scale: 2, // ความคมชัดระดับ Retina
+        useCORS: true,
+        backgroundColor: null
+    }).then(canvas => {
+        // แปลง Canvas เป็น URL รูปภาพ PNG
+        const imageURL = canvas.toDataURL('image/png');
+        
+        // เอาข้อความโหลดออก แล้วใส่แท็กรูปภาพ <img> เข้าไปแทน
+        outputArea.innerHTML = `<img id="generated-image-preview" src="${imageURL}" alt="Game Result Card">`;
+    });
+}
 
 // ==========================================
 // 🚀 ฟังก์ชันเริ่มเกม (พร้อมระบบจำภาพ 3 วิ)
@@ -388,13 +413,14 @@ function winLevel() {
     
     nextLevelBtn.style.display = "block";
     retryBtn.style.display = "none";
-    shareXBtn.style.display = "none"; // ซ่อนปุ่มแชร์ตอนแค่ผ่านด่าน
+    shareXBtn.style.display = "block"; // 💡 เปิดให้กดแชร์อวดด่านที่เพิ่งผ่านได้ทันที!
+    generateResultImage();
 }
 
 function winGameComplete() {
     if (timerInterval) clearInterval(timerInterval);
     playSound(winSound); 
-    isGameCleared = true; // 💡 กำหนดว่าชนะรวดแล้วนะ
+    isGameCleared = true; 
 
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
@@ -406,10 +432,10 @@ function winGameComplete() {
     document.getElementById('result-desc').innerHTML = `สุดยอดมาก! คุณเคลียร์ทั้ง ${finalLevel} ด่านได้สำเร็จ!<br>ยกนิ้วให้เลยคนเก่ง 💖✨`;
     
     nextLevelBtn.style.display = "none"; 
-    
     retryBtn.innerText = "เล่นใหม่อีกครั้ง 🔁"; 
     retryBtn.style.display = "block";
-    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์รัวๆ
+    shareXBtn.style.display = "block"; 
+    generateResultImage();
 }
 
 function loseGame() {
@@ -428,6 +454,7 @@ function loseGame() {
     nextLevelBtn.style.display = "none";
     retryBtn.innerText = "เล่นใหม่ 🔁";
     retryBtn.style.display = "block";
-    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์ให้เพื่อนมาช่วยแก้แค้น
+    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์บอกเพื่อนว่าตกม้าตายที่ด่านไหน
+    generateResultImage();
 }
 // ==========================================
