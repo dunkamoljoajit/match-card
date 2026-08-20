@@ -17,21 +17,19 @@
         body { color: var(--text-color); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; background-color: var(--bg-color); position: relative; }
 
         /* =========================================
-           🚪 CSS สำหรับหน้าด่านคำถาม (Gate Screen) 
-           ========================================= */
+            🚪 CSS สำหรับหน้าด่านคำถาม (Gate Screen) 
+            ========================================= */
         #gate-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            /* 💡 เปลี่ยนจาก 0.95 (ทึบ) เป็น 0.6 (โปร่งแสง) เพื่อให้เห็นภาพเลื่อนข้างหลัง */
             background: rgba(20, 15, 20, 0.6); 
-            backdrop-filter: blur(12px); /* 💡 ลดความเบลอลงนิดนึงให้พอเห็นรูป */
+            backdrop-filter: blur(12px); 
             -webkit-backdrop-filter: blur(12px);
             z-index: 9999; 
             display: flex; justify-content: center; align-items: center;
             transition: opacity 0.5s ease;
         }
         .gate-box {
-            /* 💡 เพิ่มสีกระจกฝ้าให้กล่องคำถามอ่านง่ายขึ้น เพราะฉากหลังสว่าง */
             background: rgba(30, 20, 25, 0.85);
             padding: 40px 20px;
             border-radius: 40px;
@@ -60,8 +58,8 @@
         }
 
         /* =========================================
-           ส่วนของเกมหลัก
-           ========================================= */
+            ส่วนของเกมหลัก
+            ========================================= */
         #bg-wrapper { position: fixed; top: -25%; left: -25%; width: 150vw; height: 150vh; z-index: 1; pointer-events: none; transform: rotate(-3deg); overflow: hidden; }
         #bg-collage { width: 150%; height: 150%; display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; opacity: 1; animation: scrollBg 60s linear infinite alternate; }
         .bg-tile { width: 100%; aspect-ratio: 1 / 1; background-size: cover; background-position: center; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
@@ -78,6 +76,11 @@
         .btn:hover { transform: translateY(2px); box-shadow: 0 4px 0 #e07a9e, 0 6px 15px rgba(0,0,0,0.3); }
         .btn:active { transform: translateY(6px); box-shadow: 0 0px 0 #e07a9e, 0 2px 5px rgba(0,0,0,0.3); }
 
+        /* 💡 สไตล์ปุ่ม 𝕏 สีดำเท่ๆ */
+        .btn-x { background: #0f1419; color: #ffffff; box-shadow: 0 6px 0 #000000, 0 10px 20px rgba(0,0,0,0.4); }
+        .btn-x:hover { transform: translateY(2px); box-shadow: 0 4px 0 #000000, 0 6px 15px rgba(0,0,0,0.4); }
+        .btn-x:active { transform: translateY(6px); box-shadow: 0 0px 0 #000000, 0 2px 5px rgba(0,0,0,0.4); }
+
         .game-header { width: 100%; max-width: 340px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 0.95rem; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); }
         .progress-container { width: 130px; height: 26px; background: rgba(0, 0, 0, 0.5); border: 2px solid var(--primary); border-radius: 20px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.6); z-index: 20; }
         .progress-bar { position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: linear-gradient(90deg, #ff6b81, #ffa6c9); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
@@ -92,15 +95,10 @@
         .card.flipped { transform: rotateY(180deg); }
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .card-back { 
-            /* 💡 ใส่ชื่อไฟล์รูปโลโก้ที่มีพื้นหลังของคุณ (สมมติชื่อ logo.jpg) */
             background-image: url('logo.jpg'); 
-            
-            /* 💡 ขยายรูปให้คลุมเต็มการ์ดพอดีเป๊ะ */
             background-size: cover; 
             background-position: center;
             background-repeat: no-repeat;
-            
-            /* ลบเส้นขอบและสีเดิมออก เพราะในรูปคุณมีมาให้แล้ว */
             border: none; 
             border-radius: 10px;
         }
@@ -152,6 +150,8 @@
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 10px;">
                 <button class="btn" id="next-level-btn" style="display: none;">ด่านต่อไป ➡️</button>
                 <button class="btn" id="retry-btn">เล่นใหม่ 🔁</button>
+                <!-- 💡 ปุ่มแชร์ X ที่เพิ่มเข้ามาพร้อมใช้งาน -->
+                <button class="btn btn-x" id="share-x-btn" style="display: none;">อวดเพื่อนลง 𝕏 🐦</button>
             </div>
         </div>
     </div>

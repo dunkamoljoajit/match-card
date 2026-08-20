@@ -1,36 +1,29 @@
 // ==========================================
 // 🎵 ระบบเสียง (Audio)
 // ==========================================
-// 💡 คุณต้องมีไฟล์เหล่านี้อยู่ในโฟลเดอร์เดียวกับเว็บ
-// ==========================================
-// 🎵 ระบบเสียง (Audio - ป้องกันเสียงซ้อนและตัดกัน)
-// ==========================================
 const bgm = new Audio('bgm.mp3');
 bgm.loop = true; 
-bgm.volume = 0.25; // 💡 ลดเสียง BGM ลงเหลือ 25% เพื่อให้เสียงเอฟเฟกต์เด่นชัดขึ้น ไม่ตีกับเพลง
+bgm.volume = 0.25; 
 
-// โหลดไฟล์เสียงเอฟเฟกต์
 const clickSound = new Audio('click.mp3'); 
 const flipSound = new Audio('flip.mp3'); 
 const matchSound = new Audio('match.mp3'); 
 const winSound = new Audio('win.mp3'); 
 const loseSound = new Audio('lose.mp3'); 
 
-// 💡 ฟังก์ชันเล่นเสียงแบบโคลนตัวโน้ต (แก้ปัญหาเสียงตัด และกดรัวๆ แล้วเสียงไม่มา)
 function playSound(audioObj) {
     if (!audioObj) return;
     try {
-        // สร้างร่างโคลนขึ้นมาเล่นเฉพาะกิจ เสียงจะซ้อนทับกันได้อิสระ ไม่แย่งกันเล่น
         let soundClone = audioObj.cloneNode();
-        soundClone.volume = audioObj.volume; // คงระดับความดังเดิมไว้
-        soundClone.play().catch(e => console.log("รอการคลิกหน้าจอเพื่อปลดล็อกเสียง"));
+        soundClone.volume = audioObj.volume; 
+        soundClone.play().catch(e => console.log("รอการคลิกหน้าจอ"));
     } catch (error) {
         console.log("Audio play error:", error);
     }
 }
 
 // ==========================================
-// 🚪 ระบบหน้าด่านคำถาม (Gate Screen) ใครชอบก่อน?
+// 🚪 ระบบหน้าด่านคำถาม (Gate Screen)
 // ==========================================
 const gateScreen = document.getElementById('gate-screen');
 const btnNongSo = document.getElementById('btn-nong-so');
@@ -39,16 +32,13 @@ const btnPTee = document.getElementById('btn-p-tee');
 let pTeeScale = 1; 
 
 btnNongSo.addEventListener('click', () => {
-    playSound(clickSound); // 🎵 เสียงกดปุ่ม
-
+    playSound(clickSound); 
     pTeeScale += 0.2; 
     if(pTeeScale > 1.8) pTeeScale = 1.8; 
-    
     pTeeWrapper.style.transform = `scale(${pTeeScale})`;
     
     const originalText = btnNongSo.innerText;
     btnNongSo.innerText = "แน่ใจเหรอ? 🤨";
-    
     setTimeout(() => {
         if(btnNongSo.innerText === "แน่ใจเหรอ? 🤨") {
             btnNongSo.innerText = originalText;
@@ -57,26 +47,30 @@ btnNongSo.addEventListener('click', () => {
 });
 
 btnPTee.addEventListener('click', () => {
-    playSound(clickSound); // 🎵 เสียงกดปุ่ม
-    bgm.play().catch(e => console.log("เบราว์เซอร์บล็อกการเล่นเสียงอัตโนมัติ")); // 🎵 เริ่มเล่นเพลงพื้นหลัง
-    
+    playSound(clickSound); 
+    bgm.play().catch(e => console.log("รอการเล่นเสียง")); 
     gateScreen.style.opacity = '0'; 
-    setTimeout(() => {
-        gateScreen.style.display = 'none'; 
-    }, 500);
+    setTimeout(() => { gateScreen.style.display = 'none'; }, 500);
 });
 
 // ==========================================
-// 💡 สร้างรายชื่อรูปภาพ 1-68 อัตโนมัติ
+// 💡 สร้างรายชื่อรูปภาพ 1-90 อัตโนมัติ
 // ==========================================
 const allImages = [];
 for (let i = 1; i <= 90; i++) {
     allImages.push(`picture/${i}.jpg`);
 }
 
-// ==========================================
-// 🎨 สร้างภาพพื้นหลัง Photo Collage
-// ==========================================
+function shuffleArray(array) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
+
 function buildBackgroundCollage() {
     const collage = document.getElementById('bg-collage');
     if (!collage) return;
@@ -85,12 +79,11 @@ function buildBackgroundCollage() {
     
     let duplicatedImages = [];
     while(duplicatedImages.length < 360) {
-        let shuffled = [...allImages].sort(() => 0.5 - Math.random());
+        let shuffled = shuffleArray([...allImages]);
         duplicatedImages = duplicatedImages.concat(shuffled);
     }
     
     duplicatedImages = duplicatedImages.slice(0, 360);
-
     duplicatedImages.forEach(imgUrl => {
         let tile = document.createElement('div');
         tile.classList.add('bg-tile');
@@ -111,10 +104,10 @@ let matchedPairs = 0;
 let isLocked = false;
 let isTimerPaused = false; 
 let availableImages = []; 
+let isGameCleared = false; // เอาไว้เช็คตอนแชร์ X ว่าชนะเกมหรือแพ้
 const totalPairs = 6; 
-const finalLevel = 8; // ด่านสุดท้าย
+const finalLevel = 8; 
 
-// DOM Elements ของเกม
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
@@ -127,17 +120,20 @@ const progressText = document.getElementById('progress-text');
 const startBtn = document.getElementById('start-btn');
 const nextLevelBtn = document.getElementById('next-level-btn');
 const retryBtn = document.getElementById('retry-btn');
+const shareXBtn = document.getElementById('share-x-btn');
 
 startBtn.addEventListener('click', () => { 
     playSound(clickSound);
     currentLevel = 1; 
-    availableImages = [...allImages]; 
+    isGameCleared = false;
+    availableImages = shuffleArray([...allImages]); 
     startRound(); 
 });
 retryBtn.addEventListener('click', () => { 
     playSound(clickSound);
     currentLevel = 1; 
-    availableImages = [...allImages]; 
+    isGameCleared = false;
+    availableImages = shuffleArray([...allImages]); 
     startRound(); 
 });
 nextLevelBtn.addEventListener('click', () => { 
@@ -146,15 +142,35 @@ nextLevelBtn.addEventListener('click', () => {
     startRound(); 
 });
 
+// 💡 เพิ่มระบบกดแชร์ลง X (Twitter)
+shareXBtn.addEventListener('click', () => {
+    playSound(clickSound);
+    let shareText = "";
+    
+    // ใช้ URL ปัจจุบันของเว็บเรา (ถ้าเอาขึ้น GitHub มันจะใช้ลิงก์นั้นอัตโนมัติเลยครับ)
+    let gameUrl = window.location.href; 
+
+    if (isGameCleared) {
+        shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่เคลียร์ครบ ${finalLevel} ด่านรวด! ตาแตกมาก ใครแน่จริงมาลองแข่งกัน 💖✨`;
+    } else {
+        shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่ไปถึงด่าน ${currentLevel} แล้วเวลาหมดก่อน! มาช่วยกันเล่นหน่อยยย 😭💖`;
+    }
+
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
+    window.open(twitterUrl, '_blank');
+});
+
 // ==========================================
-// 🚀 ฟังก์ชันหลักของเกม
+// 🚀 ฟังก์ชันเริ่มเกม (พร้อมระบบจำภาพ 3 วิ)
 // ==========================================
 function startRound() {
     if (timerInterval) clearInterval(timerInterval);
     
     timeLeft = Math.max(20, 60 - ((currentLevel - 1) * 5)); 
     matchedPairs = 0;
-    isLocked = false;
+    
+    // 💡 ล็อกบอร์ดไว้ก่อนตอนจำภาพ
+    isLocked = true; 
     isTimerPaused = false; 
     flippedCards = [];
 
@@ -167,27 +183,50 @@ function startRound() {
 
     levelDisplay.innerText = `ด่านที่: ${currentLevel}/${finalLevel} 🌟`;
     
-    startTimer();
-    loadCards();
+    loadCards(); // โหลดและหงายไพ่โชว์ทันที
+
+    // 💡 ระบบ Peek 3 วินาที
+    let peekTime = 3;
+    timeDisplay.classList.remove('time-alert');
+    timeDisplay.innerText = `👀 จำภาพ! ${peekTime}s`;
+    
+    let peekInterval = setInterval(() => {
+        peekTime--;
+        if (peekTime > 0) {
+            timeDisplay.innerText = `👀 จำภาพ! ${peekTime}s`;
+        } else {
+            clearInterval(peekInterval);
+            
+            // หมดเวลาจำ คว่ำการ์ดทั้งหมด!
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('flipped');
+            });
+            playSound(flipSound); // เสียงคว่ำการ์ดรวดเดียว
+            
+            isLocked = false; // ปลดล็อกให้ผู้เล่นกดได้
+            startTimer(); // เริ่มนับเวลาเกมจริงๆ
+        }
+    }, 1000);
 }
 
 function loadCards() {
     matchingBoard.innerHTML = '';
 
     if (availableImages.length < totalPairs) {
-        availableImages = [...allImages];
+        availableImages = shuffleArray([...allImages]); 
     }
 
-    availableImages.sort(() => 0.5 - Math.random());
     let selectedImages = availableImages.splice(0, totalPairs);
-    let gameCards = [...selectedImages, ...selectedImages].sort(() => 0.5 - Math.random());
+    let gameCards = shuffleArray([...selectedImages, ...selectedImages]);
 
     gameCards.forEach(imgUrl => {
         let card = document.createElement('div');
         card.classList.add('card');
+        
+        // 💡 ใส่คลาส flipped ตั้งแต่เกิดเลย เพื่อให้หงายหน้าโชว์ภาพ
+        card.classList.add('flipped');
         card.dataset.image = imgUrl;
 
-        // 💡 card-back อ้างอิงรูป logo จาก CSS
         card.innerHTML = `
             <div class="card-face card-back"></div>
             <div class="card-face card-front" style="background-image: url('${imgUrl}');"></div>
@@ -202,7 +241,7 @@ function flipCard(card) {
     if (isLocked) return;
     if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
 
-    playSound(flipSound); // 🎵 เสียงพลิกการ์ด
+    playSound(flipSound); 
 
     card.classList.add('flipped');
     flippedCards.push(card);
@@ -212,10 +251,9 @@ function flipCard(card) {
     }
 }
 
-// 💥 แอนิเมชันภาพชนกันแล้วเข้าหลอด
 function animateMatch(card1, card2) {
     isLocked = true; 
-    isTimerPaused = true; // หยุดเวลาชั่วคราว
+    isTimerPaused = true; 
     
     const rect1 = card1.getBoundingClientRect();
     const rect2 = card2.getBoundingClientRect();
@@ -254,7 +292,7 @@ function animateMatch(card1, card2) {
         clone1.style.transform = `translate(${midX - rect1.left}px, ${midY - rect1.top}px) scale(1.1) rotate(10deg)`;
         clone2.style.transform = `translate(${midX - rect2.left}px, ${midY - rect2.top}px) scale(1.1) rotate(-10deg)`;
 
-        playSound(matchSound); // 🎵 เสียงจับคู่ถูก
+        playSound(matchSound); 
 
         setTimeout(() => {
             clone2.remove();
@@ -283,7 +321,7 @@ function animateMatch(card1, card2) {
 
                 isLocked = false;
                 flippedCards = [];
-                isTimerPaused = false; // กลับมาเดินเวลาต่อ
+                isTimerPaused = false; 
 
                 if (matchedPairs === totalPairs) {
                     if (currentLevel >= finalLevel) {
@@ -319,7 +357,7 @@ function startTimer() {
     timeDisplay.innerText = `⏱ ${timeLeft}s`;
 
     timerInterval = setInterval(() => {
-        if (isTimerPaused) return; // ข้ามการหักเวลาถ้าแอนิเมชันกำลังเล่นอยู่
+        if (isTimerPaused) return; 
 
         timeLeft--;
         timeDisplay.innerText = `⏱ ${timeLeft}s`;
@@ -338,7 +376,7 @@ function startTimer() {
 
 function winLevel() {
     if (timerInterval) clearInterval(timerInterval);
-    playSound(winSound); // 🎵 เสียงชนะผ่านด่าน
+    playSound(winSound); 
 
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
@@ -350,11 +388,13 @@ function winLevel() {
     
     nextLevelBtn.style.display = "block";
     retryBtn.style.display = "none";
+    shareXBtn.style.display = "none"; // ซ่อนปุ่มแชร์ตอนแค่ผ่านด่าน
 }
 
 function winGameComplete() {
     if (timerInterval) clearInterval(timerInterval);
-    playSound(winSound); // 🎵 เสียงชนะเคลียร์เกม
+    playSound(winSound); 
+    isGameCleared = true; // 💡 กำหนดว่าชนะรวดแล้วนะ
 
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
@@ -369,11 +409,12 @@ function winGameComplete() {
     
     retryBtn.innerText = "เล่นใหม่อีกครั้ง 🔁"; 
     retryBtn.style.display = "block";
+    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์รัวๆ
 }
 
 function loseGame() {
     if (timerInterval) clearInterval(timerInterval);
-    playSound(loseSound); // 🎵 เสียงแพ้หมดเวลา
+    playSound(loseSound); 
 
     gameScreen.classList.add('hidden');
     gameOverScreen.classList.remove('hidden');
@@ -387,4 +428,6 @@ function loseGame() {
     nextLevelBtn.style.display = "none";
     retryBtn.innerText = "เล่นใหม่ 🔁";
     retryBtn.style.display = "block";
+    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์ให้เพื่อนมาช่วยแก้แค้น
 }
+// ==========================================
