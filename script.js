@@ -104,9 +104,22 @@ let matchedPairs = 0;
 let isLocked = false;
 let isTimerPaused = false; 
 let availableImages = []; 
-let isGameCleared = false; // เอาไว้เช็คตอนแชร์ X ว่าชนะเกมหรือแพ้
-const totalPairs = 6; 
-const finalLevel = 8; 
+let isGameCleared = false; 
+
+// 💡 สร้างสูตร (Pattern) ของแต่ละด่าน
+const levelConfigs = [
+    { pairs: 6, cols: 3 },  // ด่าน 1: 12 ใบ (3x4)
+    { pairs: 6, cols: 4 },  // ด่าน 2: 12 ใบ (4x3 แนวนอน)
+    { pairs: 8, cols: 4 },  // ด่าน 3: 16 ใบ (4x4 จัตุรัส)
+    { pairs: 8, cols: 4 },  // ด่าน 4: 16 ใบ (4x4 เวลาน้อยลง)
+    { pairs: 10, cols: 4 }, // ด่าน 5: 20 ใบ (4x5)
+    { pairs: 10, cols: 5 }, // ด่าน 6: 20 ใบ (5x4)
+    { pairs: 12, cols: 4 }, // ด่าน 7: 24 ใบ (4x6 ตารางใหญ่)
+    { pairs: 12, cols: 4 }  // ด่าน 8: 24 ใบ (บอสไฟต์!)
+];
+
+let totalPairs = levelConfigs[0].pairs; 
+const finalLevel = levelConfigs.length;
 
 const startScreen = document.getElementById('start-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -142,7 +155,7 @@ nextLevelBtn.addEventListener('click', () => {
     startRound(); 
 });
 
-// 💡 เพิ่มระบบกดแชร์ลง X (Twitter)
+// 💡 ระบบกดแชร์ลง X (Twitter)
 shareXBtn.addEventListener('click', () => {
     playSound(clickSound);
     let shareText = "";
@@ -151,16 +164,15 @@ shareXBtn.addEventListener('click', () => {
     if (isGameCleared) {
         shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่เคลียร์ครบ ${finalLevel} ด่านรวด! ตาแตกมาก ใครแน่จริงมาลองแข่งกัน 💖✨`;
     } else if (nextLevelBtn.style.display !== "none") {
-        // กรณีเพิ่งผ่านด่านย่อย
         shareText = `เย้! เพิ่งผ่านด่านที่ ${currentLevel} ของเกมจับคู่พี่ธีร์น้องโซ่มาแล้ว เก่งป่ะล่ะ 💅✨ มาลองเล่นกัน:`;
     } else {
-        // กรณีเวลาหมดแพ้กลางทาง
         shareText = `ฉันเล่นเกมจับคู่พี่ธีร์น้องโซ่มาถึงด่าน ${currentLevel} แล้วเวลาหมดก่อน! 😭 มาช่วยกันเล่นแก้แค้นหน่อยยย`;
     }
 
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gameUrl)}`;
     window.open(twitterUrl, '_blank');
 });
+
 // ==========================================
 // 📸 ฟังก์ชันแปลงการ์ดผลลัพธ์ให้เด้งมาเป็นภาพ (Image Card)
 // ==========================================
@@ -168,33 +180,37 @@ function generateResultImage() {
     const cardElement = document.getElementById('share-card-container');
     const outputArea = document.getElementById('image-output-area');
     
-    // เคลียร์รูปเก่าทิ้งก่อน
     outputArea.innerHTML = '<p style="font-size:0.85rem; color:#ffa6c9;">📸 กำลังสร้างการ์ดรูปภาพ...</p>';
 
-    // ใช้ html2canvas แปลงกล่องการ์ดให้เป็นรูปภาพ Canvas
     html2canvas(cardElement, {
-        scale: 2, // ความคมชัดระดับ Retina
+        scale: 2, 
         useCORS: true,
         backgroundColor: null
     }).then(canvas => {
-        // แปลง Canvas เป็น URL รูปภาพ PNG
         const imageURL = canvas.toDataURL('image/png');
-        
-        // เอาข้อความโหลดออก แล้วใส่แท็กรูปภาพ <img> เข้าไปแทน
         outputArea.innerHTML = `<img id="generated-image-preview" src="${imageURL}" alt="Game Result Card">`;
     });
 }
 
 // ==========================================
-// 🚀 ฟังก์ชันเริ่มเกม (พร้อมระบบจำภาพ 3 วิ)
+// 🚀 ฟังก์ชันเริ่มเกม (พร้อมระบบจำภาพ 1 วิ และ Pattern)
 // ==========================================
 function startRound() {
     if (timerInterval) clearInterval(timerInterval);
     
-    timeLeft = Math.max(20, 60 - ((currentLevel - 1) * 5)); 
-    matchedPairs = 0;
+    // ดึงค่า Config ด่าน
+    const config = levelConfigs[currentLevel - 1];
+    totalPairs = config.pairs; 
     
-    // 💡 ล็อกบอร์ดไว้ก่อนตอนจำภาพ
+    // จัดรูปแบบตาราง
+    matchingBoard.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+
+    // คำนวณเวลา
+    timeLeft = Math.max(20, 60 - ((currentLevel - 1) * 5)); 
+    if (currentLevel >= 3) timeLeft += 10; 
+    if (currentLevel >= 5) timeLeft += 10; 
+    
+    matchedPairs = 0;
     isLocked = true; 
     isTimerPaused = false; 
     flippedCards = [];
@@ -208,9 +224,9 @@ function startRound() {
 
     levelDisplay.innerText = `ด่านที่: ${currentLevel}/${finalLevel} 🌟`;
     
-    loadCards(); // โหลดและหงายไพ่โชว์ทันที
+    loadCards(); 
 
-    // 💡 ระบบ Peek 3 วินาที
+    // 💡 ระบบ Peek 1 วินาที (ปรับตามคำขอ โหดสุดๆ!)
     let peekTime = 1;
     timeDisplay.classList.remove('time-alert');
     timeDisplay.innerText = `👀 จำภาพ! ${peekTime}s`;
@@ -222,14 +238,13 @@ function startRound() {
         } else {
             clearInterval(peekInterval);
             
-            // หมดเวลาจำ คว่ำการ์ดทั้งหมด!
             document.querySelectorAll('.card').forEach(card => {
                 card.classList.remove('flipped');
             });
-            playSound(flipSound); // เสียงคว่ำการ์ดรวดเดียว
+            playSound(flipSound); 
             
-            isLocked = false; // ปลดล็อกให้ผู้เล่นกดได้
-            startTimer(); // เริ่มนับเวลาเกมจริงๆ
+            isLocked = false; 
+            startTimer(); 
         }
     }, 1000);
 }
@@ -248,7 +263,6 @@ function loadCards() {
         let card = document.createElement('div');
         card.classList.add('card');
         
-        // 💡 ใส่คลาส flipped ตั้งแต่เกิดเลย เพื่อให้หงายหน้าโชว์ภาพ
         card.classList.add('flipped');
         card.dataset.image = imgUrl;
 
@@ -413,7 +427,7 @@ function winLevel() {
     
     nextLevelBtn.style.display = "block";
     retryBtn.style.display = "none";
-    shareXBtn.style.display = "block"; // 💡 เปิดให้กดแชร์อวดด่านที่เพิ่งผ่านได้ทันที!
+    shareXBtn.style.display = "block"; 
     generateResultImage();
 }
 
@@ -454,7 +468,6 @@ function loseGame() {
     nextLevelBtn.style.display = "none";
     retryBtn.innerText = "เล่นใหม่ 🔁";
     retryBtn.style.display = "block";
-    shareXBtn.style.display = "block"; // 💡 โชว์ปุ่มแชร์บอกเพื่อนว่าตกม้าตายที่ด่านไหน
+    shareXBtn.style.display = "block"; 
     generateResultImage();
 }
-// ==========================================
