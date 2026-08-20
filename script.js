@@ -70,7 +70,7 @@ btnPTee.addEventListener('click', () => {
 // 💡 สร้างรายชื่อรูปภาพ 1-68 อัตโนมัติ
 // ==========================================
 const allImages = [];
-for (let i = 1; i <= 68; i++) {
+for (let i = 1; i <= 90; i++) {
     allImages.push(`picture/${i}.jpg`);
 }
 
